@@ -1,6 +1,8 @@
-# A Comprehensive Guide to Rooting Samsung A50
+# A Comprehensive Guide to Rooting Samsung Devices
 
-This guide provides a detailed, step-by-step process for rooting modern Samsung A50 (A505F) using Magisk and Odin. It is intended for users who have some experience with flashing custom firmware.
+This guide provides a detailed, step-by-step process for rooting modern Samsung devices using Magisk and Odin. It is intended for users who have some experience with flashing custom firmware.
+
+**Note: This guide is a fork of the original source and has been edited specifically for the Samsung A50 (A505F), as it has been successfully tested on this model. You may try this guide on other Samsung models and let me know if it works for you!**
 
 **This is a high-risk procedure.** Please read the entire guide carefully before starting.
 
@@ -134,7 +136,7 @@ Samsung's servers now require device-specific information to download firmware. 
       * Click **AP** and select the `magisk_patched-*.tar` file.
       * Click **CP** and select the `CP_...` file.
       * Click **CSC** and select the `HOME_CSC_...` file. (Consider trying `CSC_...` if doesn't work after flashing)
-    > **Notes:** Originally the guide mentioned to **NOT** use the `HOME_CSC_...` file and using the regular `CSC` file as it is necessary to wipe the device correctly for this process. **However**, the original guide is using a Patched Odin 3.14.1 which we are **NOT**, therefore it should be fine to select the `HOME_CSC_...`.
+    > **Notes:** Originally the guide mentioned to **NOT** use the `HOME_CSC_...` file and using the regular `CSC` file instead as it is necessary to wipe the device correctly for this process. **However**, the original guide is using a Patched Odin 3.14.1 which we are **NOT**, therefore it should be fine to select the `HOME_CSC_...`.
 6.  Once the files are loaded and your device is detected (the `ID:COM` box will be blue), click **Start**.
 
 ### Step 6: Factory Reset from Recovery
@@ -155,7 +157,7 @@ The device will not reboot automatically. We must do it manually to enter recove
 3.  Open the Magisk app. It will show a pop-up stating "Additional Setup Required.", **IF** it does not showing the pop-up, repeat the Step 5 again with `CSC_...` instead and consider connect the device to laptop at the start of Step 7 (unsure if it is actually needed).
 4.  Tap **OK**. The app will perform its final steps, and the device will automatically reboot one last time.
 
-After the reboot, open Magisk. If everything is green, congratulations! Your device is now successfully rooted.
+After the reboot, open Magisk. If everything is green, congratulations! Your device is now successfully rooted. You may install the [Root Checker](https://xdaforums.com/t/app-root-checker-in-the-android-market.927629/) app to verify if your device is successfully rooted.
 
 ### Notes
 - DO NOT perform reboot via regular way (power button). Instead use the Reboot feature in Magisk app.
