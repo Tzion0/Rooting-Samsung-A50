@@ -1,6 +1,6 @@
-# A Comprehensive Guide to Rooting Samsung Galaxy Devices
+# A Comprehensive Guide to Rooting Samsung A50
 
-This guide provides a detailed, step-by-step process for rooting modern Samsung devices using Magisk and Odin. It is intended for users who have some experience with flashing custom firmware.
+This guide provides a detailed, step-by-step process for rooting modern Samsung A50 (A505F) using Magisk and Odin. It is intended for users who have some experience with flashing custom firmware.
 
 **This is a high-risk procedure.** Please read the entire guide carefully before starting.
 
@@ -52,8 +52,7 @@ Rooting is the process of gaining privileged control (known as "root access") ov
 Download and place these tools in a dedicated folder for easy access.
 
 1.  **Magisk:** [Download the latest APK from the official GitHub](https://github.com/topjohnwu/Magisk/releases).
-      * *Alternative:* [KitsuneMagisk](https://github.com/1q23lyc45/KitsuneMagisk/releases).
-2.  **Odin:** [Patched Odin 3.14.1](https://xdaforums.com/attachments/odin3-v3-14-1_3b_patched-zip.5158507/) (A patched version is often required for custom binaries).
+2.  **Odin:** [Latest Stable Version](https://odindownload.com/).
 3.  **Samsung USB Drivers:** [Download from Samsung's Developer Portal](https://developer.samsung.com/galaxy/others/android-usb-driver-for-windows).
 4.  **Firmware Downloader:** [SamloaderKotlin Bifrost](https://github.com/zacharee/SamloaderKotlin/releases).
 
@@ -134,8 +133,8 @@ Samsung's servers now require device-specific information to download firmware. 
       * Click **BL** and select the `BL_...` file.
       * Click **AP** and select the `magisk_patched-*.tar` file.
       * Click **CP** and select the `CP_...` file.
-      * Click **CSC** and select the `CSC_...` file.
-    > **Important:** **DO NOT** use the `HOME_CSC_...` file. Using the regular `CSC` file is necessary to wipe the device correctly for this process.
+      * Click **CSC** and select the `HOME_CSC_...` file. (Consider trying `CSC_...` if doesn't work after flashing)
+    > **Notes:** Originally the guide mentioned to **NOT** use the `HOME_CSC_...` file and using the regular `CSC` file as it is necessary to wipe the device correctly for this process. **However**, the original guide is using a Patched Odin 3.14.1 which we are **NOT**, therefore it should be fine to select the `HOME_CSC_...`.
 6.  Once the files are loaded and your device is detected (the `ID:COM` box will be blue), click **Start**.
 
 ### Step 6: Factory Reset from Recovery
@@ -153,10 +152,15 @@ The device will not reboot automatically. We must do it manually to enter recove
 
 1.  The device will reboot to the "Welcome!" screen. Complete the initial setup again, including connecting to Wi-Fi.
 2.  Once on the home screen, copy the `Magisk.apk` to your device one last time and install it.
-3.  Open the Magisk app. It will show a pop-up stating "Additional Setup Required."
+3.  Open the Magisk app. It will show a pop-up stating "Additional Setup Required.", **IF** it does not showing the pop-up, repeat the Step 5 again with `CSC_...` instead and consider connect the device to laptop at the start of Step 7 (unsure if it is actually needed).
 4.  Tap **OK**. The app will perform its final steps, and the device will automatically reboot one last time.
 
 After the reboot, open Magisk. If everything is green, congratulations! Your device is now successfully rooted.
+
+### Notes
+- DO NOT perform reboot via regular way (power button). Instead use the Reboot feature in Magisk app.
+- IF you happened to reboot via regular way (power button), its likely that you will lose root access, in that case, follow the Magisk Official Guide, [Magisk-In-Recovery](https://topjohnwu.github.io/Magisk/install.html#magisk-in-recovery), to recover the root. Basically power off the device, then (Recovery Key Combo (Power + Volume Up Button)) → (Splash screen) → (Release all buttons) → (System with Magisk).
+- There is also a suggestion to update the Magisk channel from Stable to Beta to maintain Magisk root access, but it's unclear if this is true. [Source](https://xdaforums.com/t/losing-magisk-root-after-reboot.3694230/)
 
 -----
 
@@ -180,3 +184,44 @@ This guide would not be possible without the incredible work of the following de
   * **topjohnwu** for creating Magisk.
   * **The XDA-Developers community** for tirelessly testing and sharing knowledge.
   * The developers of Odin, SamloaderKotlin, and other essential tools.
+
+# Setting up Network Interception
+If your goal is to bypass SSL pinning or perform network interception, you're in the right place. There are various ways to bypass SSL pinning (Magisk Module, Frida, Objection, etc.). All methods are roughly the same; the main difference is how the process is automated. In this guide, we will be using the Magisk Module.
+
+## Network Interception Setup: Install Burp CA as a system-level trusted CA ([Source](https://blog.ropnop.com/configuring-burp-suite-with-android-nougat/))
+1. In Burp Suite -> Proxy -> Options, select "Import / export CA certificate," and in the export section, choose "Certificate in DER format."
+2. Android requires the certificate to be in PEM format and named with the `subject_hash_old` value, followed by `.0`. We can use `openssl` to convert DER to PEM, then output the `subject_hash_old` and rename the file:
+   ```bash
+   openssl x509 -inform DER -in cacert.der -out cacert.pem
+   openssl x509 -inform PEM -subject_hash_old -in cacert.pem | head -1
+   mv cacert.pem <hash>.0
+   ```
+3. Copy the certificate to the device. We can use `adb` to copy the certificate, but since it must be placed in the `/system` filesystem, we need to remount it as writable:
+   - If you able to run `adb root` without getting the error `adbd cannot run as root in production builds`:
+     ```
+     adb root
+     adb remount
+     adb push <cert>.0 /sdcard/
+     mv /sdcard/<cert>.0 /system/etc/security/cacerts/
+     chmod 644 /system/etc/security/cacerts/<cert>.0
+     ```
+   - Otherwise:
+     ```
+     adb push <cert>.0 /sdcard/
+     adb shell
+     su
+     mount -o remount,rw /
+     mv /sdcard/<cert>.0 /system/etc/security/cacerts/
+     chmod 644 /system/etc/security/cacerts/<cert>.0
+     ```
+4. Reboot. **Use the Magisk Reboot feature!**, otherwise you will lose the Root access if reboot using `adb` command `reboot`.
+5. After the device reboots, browsing to Settings -> Security -> Trusted Credentials should show the new "Portswigger CA" as a system trusted CA.
+6. Now it's possible to set up the proxy (Proxy Address is Host IP, Port is 8080) and start intecepting any and all app traffic with Burp.
+
+## SSL Pinning Bypass : Install required Magisk Modules ([Source](https://krushnalipane.medium.com/bypassing-android-ssl-pinning-194e41a0d807))
+These modules are not strictly required for network interception but are helpful for bypassing SSL pinning. It doesn't hurt to install them as well:
+- https://github.com/NVISOsecurity/AlwaysTrustUserCerts
+- https://github.com/ViRb3/magisk-frida
+- https://github.com/Bloody-Badboy/Move-User-Certificates
+
+After installing these modules, your device will have the Frida Server installed, and you can start your SSL pinning bypass journey.
